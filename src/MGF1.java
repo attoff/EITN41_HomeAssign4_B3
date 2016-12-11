@@ -18,8 +18,6 @@ public class MGF1 {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-
-
         if (maskLen > Math.pow(2, 32)) {
             System.out.println("Mask too long");
             System.exit(0);
