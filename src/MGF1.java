@@ -1,4 +1,3 @@
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -12,7 +11,6 @@ public class MGF1 {
     public MGF1(String mfgSeed, int maskLen) {
         try {
             md = MessageDigest.getInstance("SHA-1");
-           // seed = new BigInteger(mfgSeed, 16);
             this.mfgSeed = mfgSeed;
 
         } catch (NoSuchAlgorithmException e) {
@@ -26,29 +24,21 @@ public class MGF1 {
         String t = "";
 
         int iter = (int) (Math.ceil((double) maskLen / (double) md.getDigestLength())-1);
-        System.out.println(maskLen);
-        System.out.println(md.getDigestLength());
-        System.out.println(iter);
         for (int i = 0; i <= iter; i++) {
             String c = I2OSP(i, 4);
-            System.out.println("C: " + c);
 
             String comb = mfgSeed.concat(c);
-            byte[] bytes = hexStringToByteArray(comb);
-            System.out.println("comb: " + comb);
-            byte[] test = comb.getBytes();
-            for (byte b:test){
-                System.out.print(b);
-            }
-            System.out.println(" ");
-            md.update(bytes);
+            byte[] combBytes = stringToByteArray(comb);
+
+            md.update(combBytes);
             byte[] hash = md.digest();
             String hex = byteToHex(hash);
             t = t.concat(hex);
         }
-
+        t = t.substring(0, maskLen*2);
         System.out.println("Output: " + t);
         System.out.println(t.length());
+
     }
 
     private String I2OSP(int x, int xLen) {
@@ -77,14 +67,13 @@ public class MGF1 {
         formatter.close();
         return result;
     }
-    private static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i+1), 16));
+    private static byte[] stringToByteArray(String hex) {
+        byte[] result = new byte[hex.length() / 2];
+        for (int i = 0; i < hex.length(); i += 2) {
+            result[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                    + Character.digit(hex.charAt(i+1), 16));
         }
-        return data;
+        return result;
     }
 
 }
