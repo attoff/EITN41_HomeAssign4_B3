@@ -7,13 +7,13 @@ import java.util.Formatter;
 public class MGF1 {
     private MessageDigest md;
     BigInteger seed;
-    String seed_str;
+    String mfgSeed;
 
     public MGF1(String mfgSeed, int maskLen) {
         try {
             md = MessageDigest.getInstance("SHA-1");
-            seed = new BigInteger(mfgSeed, 16);
-            this.seed_str = mfgSeed;
+           // seed = new BigInteger(mfgSeed, 16);
+            this.mfgSeed = mfgSeed;
 
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -25,7 +25,7 @@ public class MGF1 {
 
         String t = "";
 
-        int iter = (int) (Math.ceil((double) maskLen / (double) md.getDigestLength()) - 1);
+        int iter = (int) (Math.ceil((double) maskLen / (double) md.getDigestLength())-1);
         System.out.println(maskLen);
         System.out.println(md.getDigestLength());
         System.out.println(iter);
@@ -33,24 +33,31 @@ public class MGF1 {
             String c = I2OSP(i, 4);
             System.out.println("C: " + c);
 
-            c = seed_str + c;
-
-            String comb = seed_str.concat(c);
-
-
-            md.update(comb.getBytes());
-
-
+            String comb = mfgSeed.concat(c);
+            byte[] bytes = hexStringToByteArray(comb);
+            System.out.println("comb: " + comb);
+            byte[] test = comb.getBytes();
+            for (byte b:test){
+                System.out.print(b);
+            }
+            System.out.println(" ");
+            md.update(bytes);
             byte[] hash = md.digest();
-
             String hex = byteToHex(hash);
-            t = t + hex;
+            t = t.concat(hex);
         }
 
         System.out.println("Output: " + t);
+        System.out.println(t.length());
     }
 
     private String I2OSP(int x, int xLen) {
+        if (x > Math.pow(256, xLen)){
+            System.out.println("integer too large");
+            System.exit(0);
+        }
+
+
         byte[] temp = new byte[xLen];
 
         temp[0] = (byte) (x >>> 24);
@@ -69,6 +76,15 @@ public class MGF1 {
         String result = formatter.toString();
         formatter.close();
         return result;
+    }
+    private static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
     }
 
 }
