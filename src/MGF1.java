@@ -28,7 +28,7 @@ public class MGF1 {
             String c = I2OSP(i, 4);
 
             String comb = mfgSeed.concat(c);
-            byte[] combBytes = stringToByteArray(comb);
+            byte[] combBytes = hexToByte(comb);
 
             md.update(combBytes);
             byte[] hash = md.digest();
@@ -67,7 +67,7 @@ public class MGF1 {
         formatter.close();
         return result;
     }
-    private static byte[] stringToByteArray(String hex) {
+    private static byte[] hexToByte(String hex) {
         byte[] result = new byte[hex.length() / 2];
         for (int i = 0; i < hex.length(); i += 2) {
             result[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
