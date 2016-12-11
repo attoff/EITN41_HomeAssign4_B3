@@ -7,6 +7,7 @@ public class MGF1 {
     private MessageDigest md;
     BigInteger seed;
     String mfgSeed;
+    String t;
 
     public MGF1(String mfgSeed, int maskLen) {
         try {
@@ -21,7 +22,7 @@ public class MGF1 {
             System.exit(0);
         }
 
-        String t = "";
+        t = "";
 
         int iter = (int) (Math.ceil((double) maskLen / (double) md.getDigestLength())-1);
         for (int i = 0; i <= iter; i++) {
@@ -37,8 +38,10 @@ public class MGF1 {
         }
         t = t.substring(0, maskLen*2);
         System.out.println("Output: " + t);
-        System.out.println(t.length());
 
+    }
+    public String getMask(){
+        return t;
     }
 
     private String I2OSP(int x, int xLen) {
