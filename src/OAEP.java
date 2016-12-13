@@ -19,7 +19,7 @@ public class OAEP {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        int hLen = md.getDigestLength() ;
+        int hLen = md.getDigestLength();
 
         int mLen = message.length;
 
@@ -79,9 +79,65 @@ public class OAEP {
             System.out.println("Decryption error");
             System.exit(1);
         }
-        if (k < 2 *hLen + 2){
+        if (k < 2 * hLen + 2) {
             System.out.println("Decryption error");
+            System.exit(1);
         }
+        String empty = "";
+        L = HexToByte(empty);
+
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        md.update(L);
+        hLen = md.getDigestLength();
+        byte[] lHash = md.digest();
+
+        byte[] y = new byte[1];
+        byte[] maskedSeed = new byte[hLen];
+        byte[] maskedDB = new byte[k - hLen - 1];
+
+        y[0] = encrypted[0];
+
+        for (int i = 0; i < hLen; i++) {
+            maskedSeed[i] = encrypted[i + 1];
+        }
+        for (int i = 0; i < maskedDB.length; i++) {
+            maskedDB[i] = encrypted[i + hLen + 1];
+        }
+
+        MGF1 mgf1 = new MGF1(byteToHex(maskedDB), hLen);
+        String seedMask = mgf1.getMask();
+        byte[] seedMaskByte = HexToByte(seedMask);
+
+        byte[] seed = xOR(maskedSeed, seedMaskByte);
+
+        MGF1 mgf2 = new MGF1(byteToHex(seed), k - hLen - 1);
+        String dbMask = mgf2.getMask();
+        byte[] dbMaskByte = HexToByte(dbMask);
+
+        byte[] DBByte = xOR(maskedDB, dbMaskByte);
+
+        byte[] message = null;
+        int place = 0;
+        boolean mBol = false;
+        for (int i = hLen - 1; i < DBByte.length; i++) {
+            if (mBol == true) {
+                message[place] = DBByte[i];
+                place++;
+            }
+            if (DBByte[i] == 0x01 && !mBol) {
+                mBol = true;
+                message = new byte[DBByte.length - i - 1];
+            }
+
+        }
+
+
+        System.out.println(byteToHex(message));
 
     }
 
