@@ -37,7 +37,7 @@ public class MGF1 {
             t = t.concat(hex);
         }
         t = t.substring(0, maskLen*2);
-        System.out.println("Output: " + t);
+      //  System.out.println("Output: " + t);
 
     }
     public String getMask(){

@@ -10,7 +10,13 @@ public class OAEP_Encryption {
         this.M = M;
         this.seed = seed;
         String L = "";
-        int hLen = 20;
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        int hLen = md.getDigestLength() ;
 
         byte[] message = HexToByte(M);
         int mLen = message.length;
@@ -21,19 +27,13 @@ public class OAEP_Encryption {
             System.exit(1);
         }
 
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("SHA-1");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         byte[] LByte = HexToByte(L);
         md.update(LByte);
         byte[] lHash = md.digest();
 
         int psLen = k - mLen - hLen * 2 - 2;
         byte[] ps = new byte[psLen];
-        byte[] hexVal = {0x00};
+        byte[] hexVal = {0x01};
 
         byte[] db = new byte[k - hLen - 1];
 
