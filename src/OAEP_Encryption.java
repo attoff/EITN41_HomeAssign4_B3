@@ -1,9 +1,8 @@
 import java.security.MessageDigest;
 import java.util.Formatter;
-import java.util.Random;
 
 public class OAEP_Encryption {
-    private int k = 64;
+    private int k = 128;
     private String M;
     private String seed;
 
@@ -13,9 +12,10 @@ public class OAEP_Encryption {
         String L = "";
         int hLen = 20;
 
-        byte[] message = hexStringToByteArray(M);
+        byte[] message = HexToByte(M);
         int mLen = message.length;
 
+        // check length of message
         if (mLen > k - hLen * 2 - 2) {
             System.out.println("message too long");
             System.exit(1);
@@ -27,7 +27,7 @@ public class OAEP_Encryption {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        byte[] LByte = hexStringToByteArray(L);
+        byte[] LByte = HexToByte(L);
         md.update(LByte);
         byte[] lHash = md.digest();
 
@@ -50,26 +50,23 @@ public class OAEP_Encryption {
 
         MGF1 mgf1 = new MGF1(seed, k - hLen - 1);
         String dbMask = mgf1.getMask();
-        byte[] dbMaskByte = hexStringToByteArray(dbMask);
+        byte[] dbMaskByte = HexToByte(dbMask);
 
         byte[] maskedDB = xOR(db, dbMaskByte);
-
-        MGF1 mgf12 = new MGF1(byteToHex(maskedDB), hLen);
+        String temp = byteToHex(maskedDB);
+        MGF1 mgf12 = new MGF1(temp, hLen);
         String seedMask = mgf12.getMask();
-        byte[] seedMaskByte = hexStringToByteArray(seedMask);
-
-        byte[] maskedSeed = xOR(hexStringToByteArray(seed), seedMaskByte);
+        byte[] seedMaskByte = HexToByte(seedMask);
+        byte[] seedByte = HexToByte(seed);
+        byte[] maskedSeed = xOR(seedByte, seedMaskByte);
 
         byte[] hexVal2 = {0x00};
         byte[] EMByte = new byte[1 + maskedSeed.length + maskedDB.length];
-        start = 0;
-        System.arraycopy(hexVal2, 0, EMByte, start, hexVal2.length);
-        start += hexVal2.length;
-        System.arraycopy(maskedSeed, 0, EMByte, start, maskedSeed.length);
-        start += maskedSeed.length;
-        System.out.println(byteToHex(maskedSeed));
-        System.arraycopy(maskedDB, 0, EMByte, start, maskedDB.length);
 
+        System.arraycopy(hexVal2, 0, EMByte, 0, hexVal2.length);
+        System.arraycopy(maskedSeed, 0, EMByte, hexVal2.length, maskedSeed.length);
+        System.arraycopy(maskedDB, 0, EMByte, 1 + maskedSeed.length, maskedDB.length);
+        System.out.println(byteToHex(maskedSeed));
         System.out.println("REAL: 0000255975c743f5f11ab5e450825d93b52a160aeef9d3778a18b7aa067f90b2178406fa1e1bf77f03f86629dd5607d11b9961707736c2d16e7c668b367890bc6ef1745396404ba7832b1cdfb0388ef601947fc0aff1fd2dcd279dabde9b10bfc51f40e13fb29ed5101dbcb044e6232e6371935c8347286db25c9ee20351ee82");
         System.out.println("OURS: " + byteToHex(EMByte));
 
@@ -80,12 +77,12 @@ public class OAEP_Encryption {
     private byte[] xOR(byte[] a, byte[] b) {
         byte[] out = new byte[a.length];
         for (int i = 0; i < a.length; i++) {
-            out[i] = (byte) (a[i] ^ b[i % b.length]);
+            out[i] = (byte) (a[i] ^ b[i]);
         }
         return out;
     }
 
-    public static byte[] hexStringToByteArray(String s) {
+    public static byte[] HexToByte(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
