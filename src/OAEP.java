@@ -1,14 +1,17 @@
 import java.security.MessageDigest;
 import java.util.Formatter;
 
-public class OAEP_Encryption {
-    private int k = 128;
-    private String M;
-    private String seed;
+public class OAEP {
+    private int k = 128, hLen;
+    private byte[] message, seed, L;
 
-    public OAEP_Encryption(String M, String seed) {
-        this.M = M;
-        this.seed = seed;
+    public OAEP() {
+
+    }
+
+    public void encrypt(String M, String seed) {
+        message = HexToByte(M);
+        this.seed = HexToByte(seed);
         String L = "";
         MessageDigest md = null;
         try {
@@ -18,7 +21,6 @@ public class OAEP_Encryption {
         }
         int hLen = md.getDigestLength() ;
 
-        byte[] message = HexToByte(M);
         int mLen = message.length;
 
         // check length of message
@@ -57,8 +59,7 @@ public class OAEP_Encryption {
         MGF1 mgf12 = new MGF1(temp, hLen);
         String seedMask = mgf12.getMask();
         byte[] seedMaskByte = HexToByte(seedMask);
-        byte[] seedByte = HexToByte(seed);
-        byte[] maskedSeed = xOR(seedByte, seedMaskByte);
+        byte[] maskedSeed = xOR(this.seed, seedMaskByte);
 
         byte[] hexVal2 = {0x00};
         byte[] EMByte = new byte[1 + maskedSeed.length + maskedDB.length];
@@ -69,6 +70,18 @@ public class OAEP_Encryption {
         System.out.println("REAL: 0000255975c743f5f11ab5e450825d93b52a160aeef9d3778a18b7aa067f90b2178406fa1e1bf77f03f86629dd5607d11b9961707736c2d16e7c668b367890bc6ef1745396404ba7832b1cdfb0388ef601947fc0aff1fd2dcd279dabde9b10bfc51f40e13fb29ed5101dbcb044e6232e6371935c8347286db25c9ee20351ee82");
         System.out.println("OURS: " + byteToHex(EMByte));
 
+
+    }
+
+    public void decrypt(String EM) {
+        byte[] encrypted = HexToByte(EM);
+        if (encrypted.length != k) {
+            System.out.println("Decryption error");
+            System.exit(1);
+        }
+        if (k < 2 *hLen + 2){
+            System.out.println("Decryption error");
+        }
 
     }
 
